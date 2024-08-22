@@ -1,55 +1,61 @@
-import Course from "./Components/Course"
+import { useState } from "react";
+import Contacts from "./Components/Contacts"
+import Form from "./Components/Form"
+import Search from "./Components/Search"
+
 
 const App = () => {
-  const course = [{
-    id: 1,
-    name: 'Half Stack application development',
-    parts: [
-      {
-        name: 'Fundamentals of React',
-        exercises: 20,
-        id: 1
-      },
-      {
-        name: 'Using props to pass data',
-        exercises: 7,
-        id: 2
-      },
-      {
-        name: 'State of a component',
-        exercises: 14,
-        id: 3
-      },
-      {
-        name: 'Example',
-        exercises: 10,
-        id: 4
-      }
-    ]},
-    {
-    id: 2,
-    name: 'Node js',
-    parts: [
-      {
-        name: 'Fundamentals of Node',
-        exercises: 10,
-        id: 1
-      },
-      {
-        name: 'Using props to pass data',
-        exercises: 7,
-        id: 2
-      },
-      {
-        name: 'State of a Node component',
-        exercises: 14,
-        id: 3
-      }
-    ]
+  const [persons, setPersons] = useState([
+    { name: 'Arto Hellas', number: '040-123456', id: 1 },
+    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
+    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
+    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 },
+    { name: 'Jayash Basnet', number: '39-23-6423122', id: 5 }
+  ]);
 
-  }]
+  const [newPerson, setNewPerson] = useState({ name: "", number: "", id: 0 });
+  const [searchTerm, setSearchTerm] = useState("");
 
-  return <Course courses={course} />
-}
+  const handleNameChange = (event) => {
+    setNewPerson({ ...newPerson, name: event.target.value });
+  };
 
-export default App
+  const handlePhoneChange = (event) => {
+    setNewPerson({ ...newPerson, number: event.target.value });
+  };
+
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value.toLowerCase());
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (persons.some(person => person.name === newPerson.name)) {
+      alert("Contact Already Exists");
+    } else {
+      const newId = persons.length ? Math.max(persons.map(p => p.id)) + 1 : 1;
+      setPersons([...persons, { ...newPerson, id: newId }]);
+      setNewPerson({ name: "", number: "", id: 0 });
+    }
+  };
+
+  const filteredPersons = persons.filter(person =>
+    person.name.toLowerCase().includes(searchTerm)
+  );
+
+  return (
+    <div>
+      <Search onSearch={handleSearch} />
+
+      <Form 
+        onSubmit={handleSubmit}
+        onNameChange={handleNameChange}
+        onPhoneChange={handlePhoneChange}
+        newPerson={newPerson}
+      />
+      <Contacts persons={filteredPersons} />
+    </div>
+  );
+};
+
+export default App;
