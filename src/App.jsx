@@ -1,20 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import personService from "./Services/personService"
 import Contacts from "./Components/Contacts"
 import Form from "./Components/Form"
 import Search from "./Components/Search"
 
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 },
-    { name: 'Jayash Basnet', number: '39-23-6423122', id: 5 }
-  ]);
-
+  debugger
+  const [persons, setPersons] = useState([]);
   const [newPerson, setNewPerson] = useState({ name: "", number: "", id: 0 });
   const [searchTerm, setSearchTerm] = useState("");
+
+  const hook = () =>
+    {
+      debugger
+      personService
+        .GetAll()
+        .then(initPersons=>
+          setPersons(initPersons)
+        )
+    }
+
+  useEffect(hook,[])
 
   const handleNameChange = (event) => {
     setNewPerson({ ...newPerson, name: event.target.value });
@@ -28,20 +35,46 @@ const App = () => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
+  const removePerson = (id) =>
+  {
+    personService
+    .Delete(id)
+    .then(
+      DeletedPerson =>
+      {
+          setPersons(persons.filter(person=>{if(person.id != DeletedPerson.id)
+                return(person)}))
+      }
+    )
+  } 
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (persons.some(person => person.name === newPerson.name)) {
-      alert("Contact Already Exists");
-    } else {
-      const newId = persons.length ? Math.max(persons.map(p => p.id)) + 1 : 1;
+      debugger
+      let updated_person = persons.find(person=>person.name == newPerson.name)
+      updated_person.number = newPerson.number
+      personService
+      .Update(updated_person.id, updated_person)
+      .then((returnedPerson)=>
+        setPersons(persons.map(person=>(person.id == returnedPerson.id)? returnedPerson : person))
+      )
+      
+    } 
+    else {
+      debugger
+      console.log(persons.map(p => p.id))
+      const newId = persons.length ? (persons.length + 1).toString(): "1";
+      personService
+      .Create({...newPerson, id:newId})
       setPersons([...persons, { ...newPerson, id: newId }]);
       setNewPerson({ name: "", number: "", id: 0 });
     }
   };
 
-  const filteredPersons = persons.filter(person =>
-    person.name.toLowerCase().includes(searchTerm)
-  );
+  const filteredPersons = 
+      persons.filter(person =>
+      person.name.toLowerCase().includes(searchTerm))
 
   return (
     <div>
@@ -53,7 +86,8 @@ const App = () => {
         onPhoneChange={handlePhoneChange}
         newPerson={newPerson}
       />
-      <Contacts persons={filteredPersons} />
+
+      <Contacts persons={filteredPersons()} removePerson={removePerson}/>
     </div>
   );
 };
