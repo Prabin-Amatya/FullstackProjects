@@ -87,7 +87,7 @@ const App = () => {
         newPerson={newPerson}
       />
 
-      <Contacts persons={filteredPersons()} removePerson={removePerson}/>
+      <Contacts persons={filteredPersons} removePerson={removePerson}/>
     </div>
   );
 };
